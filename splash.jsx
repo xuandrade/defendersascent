@@ -214,6 +214,24 @@ function playBlip() {
   playChord([783.99, 1046.5], 0.12, 'triangle', 0.1);
 }
 
+// CHECK CHIME — mais satisfatório que o blip, usado nos checkboxes do edital
+// Som de "click cristalino" — três notas curtas ascendentes em harmonia
+function playCheckChime() {
+  const ctx = getCtx(); if (!ctx) return;
+  setTimeout(() => playChord([1046.5, 1318.5], 0.10, 'triangle', 0.14), 0);   // C6+E6
+  setTimeout(() => playChord([1567.98, 1975.53], 0.14, 'sine', 0.11), 55);    // G6+B6 sparkle
+}
+
+// TOPIC MASTERED — quando todos checkboxes do tópico ficam marcados
+// Acorde maior triunfante, curtinho mas marcante
+function playTopicMastered() {
+  const ctx = getCtx(); if (!ctx) return;
+  // D major + sparkle
+  setTimeout(() => playChord([587.33, 739.99, 880], 0.35, 'triangle', 0.18), 0);
+  setTimeout(() => playChord([1174.66, 1480, 1760], 0.45, 'sine', 0.13), 100);
+  setTimeout(() => playChord([2349.32, 2637.02], 0.3, 'sine', 0.08), 240);
+}
+
 // ===== Confetti =====
 function spawnConfetti({ count = 30, colors = ['#00b8d4', '#8b3dff'], spread = 90, velocity = 5, gravity = true, shapes = ['square'] }) {
   const root = document.getElementById('confetti-root');
@@ -262,6 +280,8 @@ window.playEvolution = playEvolution;
 window.playSick = playSick;
 window.playHealed = playHealed;
 window.playBlip = playBlip;
+window.playCheckChime = playCheckChime;
+window.playTopicMastered = playTopicMastered;
 window.celebrateLight = function() { spawnConfetti({ count: 14, colors: ['#00b8d4', '#8b3dff'], spread: 90, shapes: ['square'] }); playLight(); };
 window.celebrateHighEnergy = function() {
   spawnConfetti({ count: 70, colors: ['#00b8d4', '#8b3dff', '#f59e0b', '#00c46a', '#ff3d8a'], spread: 280, velocity: 7, shapes: ['square', 'circle', 'star'] });

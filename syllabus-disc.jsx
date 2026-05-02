@@ -5,6 +5,7 @@ const FLAG_LABELS_DISC = { estudado: 'Estudado', grifado: 'Grifado', questoes: '
 function SyllabusMatrixDiscursiva({ state, setState, onCheckXp }) {
   const toggle = (sId, tId, flag) => {
     let xpDelta = 0;
+    let willMaster = false;
     setState(s => ({
       ...s,
       subjects: s.subjects.map(sub => sub.id !== sId ? sub : {
@@ -16,13 +17,24 @@ function SyllabusMatrixDiscursiva({ state, setState, onCheckXp }) {
           const prevChecks = FLAGS_DISC.filter(f => t[f]).length;
           if (nextChecks > prevChecks) xpDelta = 5;
           if (nextChecks < prevChecks) xpDelta = -5;
+          if (nextChecks === 3 && prevChecks < 3) willMaster = true;
+          if (xpDelta !== 0) next.lastStudiedAt = new Date().toISOString();
           return next;
         }),
       }),
     }));
     setTimeout(() => {
-      if (xpDelta > 0) { window.celebrateLight(); window.playBlip && window.playBlip(); onCheckXp && onCheckXp(xpDelta); }
-      else if (xpDelta < 0) { onCheckXp && onCheckXp(xpDelta); }
+      if (willMaster) {
+        window.celebrateHighEnergy && window.celebrateHighEnergy();
+        window.playTopicMastered && window.playTopicMastered();
+        if (onCheckXp) onCheckXp(xpDelta);
+      } else if (xpDelta > 0) {
+        window.celebrateLight && window.celebrateLight();
+        window.playCheckChime && window.playCheckChime();
+        if (onCheckXp) onCheckXp(xpDelta);
+      } else if (xpDelta < 0) {
+        if (onCheckXp) onCheckXp(xpDelta);
+      }
     }, 0);
   };
 

@@ -133,6 +133,44 @@ html, body {
   50% { border-color: rgba(245, 158, 11, 0.75); box-shadow: 0 0 12px rgba(245,158,11,0.35); }
 }
 .pulse-amber { animation: amber-pulse 2s ease-in-out infinite; }
+
+/* Review-pending glow — célula do heatmap do edital quando passou do prazo de revisão */
+@keyframes review-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(245, 158, 11, 0.35),
+      0 0 6px rgba(245, 158, 11, 0.25),
+      inset 0 0 6px rgba(245, 158, 11, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1.5px rgba(245, 158, 11, 0.85),
+      0 0 18px rgba(255, 193, 7, 0.55),
+      0 0 4px rgba(255, 193, 7, 0.7),
+      inset 0 0 8px rgba(255, 193, 7, 0.18);
+  }
+}
+.review-glow { animation: review-glow 2.4s ease-in-out infinite; position: relative; }
+.review-glow::after {
+  content: '✦';
+  position: absolute; top: 2px; right: 4px;
+  font-size: 9px; color: rgba(245, 158, 11, 0.85);
+  text-shadow: 0 0 6px rgba(255, 193, 7, 0.8);
+  animation: review-sparkle 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes review-sparkle {
+  0%, 100% { opacity: 0.4; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.15) rotate(15deg); }
+}
+
+/* Mastered-cell shimmer — célula 5/5 com shimmer suave em violeta */
+@keyframes mastered-shimmer {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(139,61,255,0.55), 0 0 8px rgba(176,74,255,0.35); }
+  50%      { box-shadow: 0 0 0 1px rgba(139,61,255,0.75), 0 0 16px rgba(176,74,255,0.55); }
+}
+.mastered-shimmer { animation: mastered-shimmer 3.2s ease-in-out infinite; }
+
 @keyframes toast-in { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
 @keyframes confetti-fall {
   to { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)); opacity: 0; }

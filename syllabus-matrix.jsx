@@ -16,16 +16,30 @@ function SyllabusMatrixObjetiva({ state, setState, onMaster, onCheckXp }) {
           const nextChecks = FLAGS_OBJ.filter(f => next[f]).length;
           const prevChecks = FLAGS_OBJ.filter(f => t[f]).length;
           if (nextChecks > prevChecks) xpDelta = 5;       // +5 XP per check gained
-          if (nextChecks < prevChecks) xpDelta = -5;      // -5 if unchecked (avoids gaming)
+          if (nextChecks < prevChecks) xpDelta = -5;      // -5 if unchecked
           if (nextChecks === 5 && prevChecks < 5) willMaster = true;
+          // Atualiza lastStudiedAt sempre que houver qualquer alteração nos checks
+          // (necessário para o decaimento temporal do EditalHeatmap)
+          if (xpDelta !== 0) next.lastStudiedAt = new Date().toISOString();
           return next;
         }),
       }),
     }));
     setTimeout(() => {
-      if (xpDelta > 0) { window.celebrateLight(); window.playBlip && window.playBlip(); onCheckXp && onCheckXp(xpDelta); }
-      else if (xpDelta < 0) { onCheckXp && onCheckXp(xpDelta); }
-      if (willMaster && onMaster) onMaster();
+      if (willMaster) {
+        // 5/5 atingido: celebração maior + som de "tópico dominado"
+        window.celebrateHighEnergy && window.celebrateHighEnergy();
+        window.playTopicMastered && window.playTopicMastered();
+        if (onCheckXp) onCheckXp(xpDelta);
+        if (onMaster) onMaster();
+      } else if (xpDelta > 0) {
+        // Check normal: confete leve + som satisfatório
+        window.celebrateLight && window.celebrateLight();
+        window.playCheckChime && window.playCheckChime();
+        if (onCheckXp) onCheckXp(xpDelta);
+      } else if (xpDelta < 0) {
+        if (onCheckXp) onCheckXp(xpDelta);
+      }
     }, 0);
   };
 

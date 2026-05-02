@@ -149,6 +149,119 @@ function GoalsModal({ open, goals, onSave, onClose }) {
 }
 
 // =============================================================================
+// TOTALS SECTION — totais acumulados (horas, questões, flashcards, checks, etc.)
+// =============================================================================
+function TotalsSection({ shared, objState, discState }) {
+  const logs = shared.dailyLogs || [];
+  const totalHours = logs.reduce((a, l) => a + (l.hours || 0), 0);
+  const totalQuestions = logs.reduce((a, l) => a + (l.questions || 0), 0);
+  const totalReviews = logs.reduce((a, l) => a + (l.reviews || 0), 0);
+  const activeDays = logs.filter(l => (l.hours || 0) + (l.questions || 0) + (l.reviews || 0) > 0).length;
+
+  const FLAGS_O = ['lei','doutrina','juris','questoes','revisao'];
+  const FLAGS_D = ['estudado','grifado','questoes'];
+
+  let objChecks = 0, objMastered = 0, objTotalTopics = 0;
+  objState.subjects.forEach(s => {
+    objTotalTopics += s.topics.length;
+    s.topics.forEach(t => {
+      const c = FLAGS_O.filter(f => t[f]).length;
+      objChecks += c;
+      if (c === 5) objMastered++;
+    });
+  });
+
+  let discChecks = 0, discMastered = 0, discTotalTopics = 0;
+  discState.subjects.forEach(s => {
+    discTotalTopics += s.topics.length;
+    s.topics.forEach(t => {
+      const c = FLAGS_D.filter(f => t[f]).length;
+      discChecks += c;
+      if (c === 3) discMastered++;
+    });
+  });
+
+  // Tópicos pedindo revisão (>30 dias sem atividade, mas com algum check)
+  const REVIEW_DAYS = 30;
+  const daysSince = (iso) => {
+    if (!iso) return Infinity;
+    return Math.floor((new Date() - new Date(iso)) / 86400000);
+  };
+  let needsReview = 0;
+  objState.subjects.forEach(s => s.topics.forEach(t => {
+    const c = FLAGS_O.filter(f => t[f]).length;
+    if (c > 0 && daysSince(t.lastStudiedAt) >= REVIEW_DAYS) needsReview++;
+  }));
+  discState.subjects.forEach(s => s.topics.forEach(t => {
+    const c = FLAGS_D.filter(f => t[f]).length;
+    if (c > 0 && daysSince(t.lastStudiedAt) >= REVIEW_DAYS) needsReview++;
+  }));
+
+  const items = [
+    { label: 'Horas estudadas', value: totalHours.toFixed(1), unit: 'h', color: '#00b8d4', glow: '#00d9ff', icon: '⏱', sub: `${activeDays} dias ativos` },
+    { label: 'Questões resolvidas', value: totalQuestions.toLocaleString('pt-BR'), unit: '', color: '#00c46a', glow: '#00ff88', icon: '❓', sub: 'no total' },
+    { label: 'Revisões / Flashcards', value: totalReviews.toLocaleString('pt-BR'), unit: '', color: '#8b3dff', glow: '#b04aff', icon: '🃏', sub: 'no total' },
+    { label: 'Checks no edital', value: (objChecks + discChecks).toLocaleString('pt-BR'), unit: '', color: '#f59e0b', glow: '#ffc107', icon: '✓', sub: `Obj ${objChecks} · Disc ${discChecks}` },
+    { label: 'Tópicos dominados', value: (objMastered + discMastered), unit: `/${objTotalTopics + discTotalTopics}`, color: '#ff3d8a', glow: '#ff4fa0', icon: '🏆', sub: `Obj ${objMastered} · Disc ${discMastered}` },
+    { label: 'Pedem revisão', value: needsReview, unit: '', color: '#ff7a1a', glow: '#ffc107', icon: '✦', sub: needsReview > 0 ? '> 30 dias sem atividade' : 'tudo em dia!' },
+  ];
+
+  return (
+    <div className="glass" style={{ padding: 18 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 6 }}>
+        <div>
+          <div style={{ fontSize: 10, letterSpacing: '0.2em', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace', fontWeight: 600 }}>
+            TOTAIS ACUMULADOS · DESDE O INÍCIO
+          </div>
+          <div className="font-display" style={{ fontSize: 18, fontWeight: 700, marginTop: 2 }}>
+            Sua jornada até agora 📊
+          </div>
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--text-dim)', fontFamily: 'JetBrains Mono, monospace', fontWeight: 600, letterSpacing: '0.1em' }}>
+          {logs.length > 0
+            ? `desde ${new Date(logs[0].date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' })}`
+            : 'aguardando primeiro registro'}
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+        {items.map((m, i) => (
+          <div key={i} style={{
+            padding: 14, borderRadius: 12,
+            background: `radial-gradient(ellipse at top, ${m.color}10, transparent 70%), rgba(255,255,255,0.55)`,
+            border: `1px solid ${m.color}33`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: 8,
+                background: `${m.color}1f`,
+                display: 'grid', placeItems: 'center',
+                fontSize: 14, color: m.color,
+                filter: `drop-shadow(0 0 4px ${m.glow}66)`,
+              }}>{m.icon}</div>
+              <div style={{ fontSize: 10, letterSpacing: '0.1em', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
+                {m.label}
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+              <span className="num" style={{ fontSize: 26, fontWeight: 700, color: m.color, letterSpacing: '-0.02em', textShadow: `0 0 10px ${m.glow}55` }}>
+                {m.value}
+              </span>
+              <span className="num" style={{ fontSize: 12, color: 'var(--text-dim)', fontWeight: 600 }}>
+                {m.unit}
+              </span>
+            </div>
+            <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 4, fontFamily: 'JetBrains Mono, monospace' }}>
+              {m.sub}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// =============================================================================
 // BACKUP SECTION — download / restore / reset
 // =============================================================================
 function BackupSection({ shared, objState, discState, onRestore, onReset, onToast }) {
@@ -274,6 +387,34 @@ function App() {
       petHealth: s.petHealth || 'healthy',
       goals: { dailyFlashcards: 30, ...s.goals },
       ...s,
+    }));
+    // Backfill lastStudiedAt nos tópicos da Objetiva e Discursiva
+    // Tópicos com qualquer check existente recebem a data de hoje (assume estudo recente)
+    // Tópicos sem nenhum check ficam com null (não pedem revisão)
+    const todayISO = new Date().toISOString();
+    const FLAGS_O = ['lei','doutrina','juris','questoes','revisao'];
+    const FLAGS_D = ['estudado','grifado','questoes'];
+    setObjState(o => ({
+      ...o,
+      subjects: o.subjects.map(sub => ({
+        ...sub,
+        topics: sub.topics.map(t => {
+          if (t.lastStudiedAt !== undefined) return t;
+          const hasCheck = FLAGS_O.some(f => t[f]);
+          return { ...t, lastStudiedAt: hasCheck ? todayISO : null };
+        }),
+      })),
+    }));
+    setDiscState(d => ({
+      ...d,
+      subjects: d.subjects.map(sub => ({
+        ...sub,
+        topics: sub.topics.map(t => {
+          if (t.lastStudiedAt !== undefined) return t;
+          const hasCheck = FLAGS_D.some(f => t[f]);
+          return { ...t, lastStudiedAt: hasCheck ? todayISO : null };
+        }),
+      })),
     }));
   }, []); // once
 
@@ -472,11 +613,15 @@ function App() {
           </section>
         )}
 
-        {mode === 'objetiva' && (
-          <section style={{ marginBottom: 16 }}>
-            <EditalHeatmap subjects={objState.subjects} heatmap={objState.heatmap} setHeatmap={setHeatmap} onMaster={handleMaster} />
-          </section>
-        )}
+        <section style={{ marginBottom: 16 }}>
+          <EditalHeatmap
+            subjects={mode === 'objetiva' ? objState.subjects : discState.subjects}
+            mode={mode} />
+        </section>
+
+        <section style={{ marginBottom: 16 }}>
+          <TotalsSection shared={shared} objState={objState} discState={discState} />
+        </section>
 
         <section style={{ marginBottom: 16 }}>
           <BackupSection
