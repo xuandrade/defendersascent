@@ -164,13 +164,6 @@ html, body {
   50% { opacity: 1; transform: scale(1.15) rotate(15deg); }
 }
 
-/* Mastered-cell shimmer — célula 5/5 com shimmer suave em violeta */
-@keyframes mastered-shimmer {
-  0%, 100% { box-shadow: 0 0 0 1px rgba(139,61,255,0.55), 0 0 8px rgba(176,74,255,0.35); }
-  50%      { box-shadow: 0 0 0 1px rgba(139,61,255,0.75), 0 0 16px rgba(176,74,255,0.55); }
-}
-.mastered-shimmer { animation: mastered-shimmer 3.2s ease-in-out infinite; }
-
 @keyframes toast-in { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
 @keyframes confetti-fall {
   to { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)); opacity: 0; }
